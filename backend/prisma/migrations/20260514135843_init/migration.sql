@@ -1,3 +1,17 @@
+-- Drop all tables if they exist (in correct dependency order)
+DROP TABLE IF EXISTS "PayrollLine" CASCADE;
+DROP TABLE IF EXISTS "LopRecord" CASCADE;
+DROP TABLE IF EXISTS "IncrementRecord" CASCADE;
+DROP TABLE IF EXISTS "ArrearRecord" CASCADE;
+DROP TABLE IF EXISTS "IncentiveRecord" CASCADE;
+DROP TABLE IF EXISTS "ReferralBonus" CASCADE;
+DROP TABLE IF EXISTS "OtherPayment" CASCADE;
+DROP TABLE IF EXISTS "AuditLog" CASCADE;
+DROP TABLE IF EXISTS "PayrollRun" CASCADE;
+DROP TABLE IF EXISTS "Employee" CASCADE;
+DROP TABLE IF EXISTS "AdminUser" CASCADE;
+DROP TABLE IF EXISTS "Setting" CASCADE;
+
 -- CreateTable "AdminUser"
 CREATE TABLE "AdminUser" (
     "id" SERIAL NOT NULL PRIMARY KEY,

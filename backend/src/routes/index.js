@@ -1,0 +1,23 @@
+import { Router } from 'express';
+import authRoutes from './auth.routes.js';
+import employeesRoutes from './employees.routes.js';
+import uploadRoutes from './upload.routes.js';
+import payrollRoutes from './payroll.routes.js';
+import reportsRoutes from './reports.routes.js';
+import settingsRoutes from './settings.routes.js';
+import payrollInputsRoutes from './payroll-inputs.routes.js';
+import bulkUploadsRoutes from './bulk-uploads.routes.js';
+import adminRoutes from './admin.routes.js';
+
+const router = Router();
+router.use('/auth', authRoutes);
+router.use('/employees', employeesRoutes);
+router.use('/upload', uploadRoutes);
+router.use('/payroll', payrollRoutes);
+router.use('/reports', reportsRoutes);
+router.use('/settings', settingsRoutes);
+router.use('/payroll-inputs', payrollInputsRoutes);
+router.use('/bulk-uploads', bulkUploadsRoutes);
+router.use('/admin', adminRoutes);
+router.get('/health', (req, res) => res.json({ ok: true, time: new Date().toISOString() }));
+export default router;

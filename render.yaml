@@ -1,0 +1,22 @@
+# Render.com Blueprint (free tier). Uses external free Postgres from Neon.
+# Total monthly cost: ₹0.
+services:
+  - type: web
+    name: payroll-app
+    runtime: docker
+    plan: free
+    healthCheckPath: /api/health
+    autoDeploy: true
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 4000
+      - key: JWT_SECRET
+        generateValue: true
+      - key: ADMIN_EMAIL
+        value: admin@payroll.local
+      - key: ADMIN_PASSWORD
+        sync: false       # set manually in Render dashboard
+      - key: DATABASE_URL
+        sync: false       # paste your Neon connection string in the dashboard

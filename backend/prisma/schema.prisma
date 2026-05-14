@@ -1,0 +1,207 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model AdminUser {
+  id        Int      @id @default(autoincrement())
+  email     String   @unique
+  password  String
+  name      String?
+  createdAt DateTime @default(now())
+}
+
+model Employee {
+  id                   Int       @id @default(autoincrement())
+  empNo                String    @unique
+  name                 String
+  department           String?
+  designation          String?
+  email                String?
+  doj                  DateTime?
+  dol                  DateTime?
+  status               String    @default("ACTIVE") // ACTIVE | RELIEVED | NEW_JOINEE
+  employmentType       String    @default("EMPLOYEE") // EMPLOYEE | CONSULTANT
+  tdsPercent           Float     @default(0)         // decimal — 0.10 = 10% (mostly for consultants)
+  ctcAnnual            Float     @default(0)
+  // Override values (if blank, derived from CTC + settings)
+  basic                Float?
+  hra                  Float?
+  conveyance           Float?
+  fixedAllowance       Float?
+  // Compliance / bank
+  pan                  String?
+  uan                  String?
+  esiNumber            String?
+  bankAccount          String?
+  bankName             String?
+  ifsc                 String?
+  // Pending salary carried forward
+  pendingSalaryOpening Float     @default(0)
+  notes                String?
+  createdAt            DateTime  @default(now())
+  updatedAt            DateTime  @updatedAt
+
+  payrollLines    PayrollLine[]
+  lopRecords      LopRecord[]
+  incrementRecords IncrementRecord[]
+  arrearRecords   ArrearRecord[]
+  incentiveRecords IncentiveRecord[]
+  referralBonuses ReferralBonus[]
+  otherPayments   OtherPayment[]
+}
+
+model PayrollRun {
+  id          Int      @id @default(autoincrement())
+  period      String   @unique // e.g. "2025-04"
+  periodLabel String   // "April 2025"
+  status      String   @default("DRAFT") // DRAFT | PROCESSED | LOCKED
+  totalDays   Int      @default(30)
+  notes       String?
+  createdAt   DateTime @default(now())
+  processedAt DateTime?
+  lockedAt    DateTime?
+
+  lines       PayrollLine[]
+}
+
+model PayrollLine {
+  id                Int      @id @default(autoincrement())
+  runId             Int
+  employeeId        Int
+  empNo             String   // denormalized for audit
+  name             String
+  department       String?
+  doj              DateTime?
+  ctcAnnual        Float
+  effectivePaidDays Float
+  basic            Float
+  hra              Float
+  conveyance       Float
+  fixedAllowance   Float
+  leaveEncashment  Float    @default(0)
+  salesIncentive   Float    @default(0)
+  reimbursements   Float    @default(0)
+  arrears          Float    @default(0)
+  referralBonus    Float    @default(0)
+  sundayEarnings   Float    @default(0)
+  festivalEarnings Float    @default(0)
+  fixedMonthlyEarnings Float
+  totalEarnings    Float
+  epf              Float
+  esi              Float
+  incomeTax        Float    @default(0)
+  professionalTax  Float
+  totalDeductions  Float
+  grossPay         Float
+  netPay           Float
+  pendingSalary    Float    @default(0)
+  totalPayable     Float
+  paid             Float    @default(0)
+  pendingClosing   Float
+  status           String   @default("CALCULATED") // CALCULATED | PAID
+  createdAt        DateTime @default(now())
+
+  run         PayrollRun @relation(fields: [runId], references: [id], onDelete: Cascade)
+  employee    Employee   @relation(fields: [employeeId], references: [id])
+
+  @@unique([runId, employeeId])
+}
+
+model LopRecord {
+  id           Int      @id @default(autoincrement())
+  employeeId   Int
+  period       String   // "2025-04"
+  lopDays      Float    @default(0)
+  sundayDays   Float    @default(0)
+  festivalDays Float    @default(0)
+  remarks      String?
+  createdAt    DateTime @default(now())
+
+  employee     Employee @relation(fields: [employeeId], references: [id])
+
+  @@unique([employeeId, period])
+}
+
+model IncrementRecord {
+  id           Int      @id @default(autoincrement())
+  employeeId   Int
+  period       String
+  oldCtc       Float
+  newCtc       Float
+  effectiveFrom DateTime
+  remarks      String?
+  createdAt    DateTime @default(now())
+
+  employee     Employee @relation(fields: [employeeId], references: [id])
+}
+
+model ArrearRecord {
+  id           Int      @id @default(autoincrement())
+  employeeId   Int
+  period       String
+  days         Float    @default(0)
+  amount       Float    @default(0)
+  remarks      String?
+  createdAt    DateTime @default(now())
+
+  employee     Employee @relation(fields: [employeeId], references: [id])
+}
+
+model IncentiveRecord {
+  id           Int      @id @default(autoincrement())
+  employeeId   Int
+  period       String
+  amount       Float
+  ancillary    String?
+  remarks      String?
+  createdAt    DateTime @default(now())
+
+  employee     Employee @relation(fields: [employeeId], references: [id])
+}
+
+model ReferralBonus {
+  id           Int      @id @default(autoincrement())
+  employeeId   Int
+  period       String
+  referredName String?
+  amount       Float
+  remarks      String?
+  createdAt    DateTime @default(now())
+
+  employee     Employee @relation(fields: [employeeId], references: [id])
+}
+
+model OtherPayment {
+  id           Int      @id @default(autoincrement())
+  employeeId   Int
+  period       String
+  description  String?
+  travelling   Float    @default(0)
+  ancillary    Float    @default(0)
+  amount       Float
+  remarks      String?
+  createdAt    DateTime @default(now())
+
+  employee     Employee @relation(fields: [employeeId], references: [id])
+}
+
+model AuditLog {
+  id        Int      @id @default(autoincrement())
+  actor     String   // admin email
+  action    String   // CREATE_EMPLOYEE, UPLOAD_FILE, PROCESS_PAYROLL, etc.
+  entity    String?  // Employee, PayrollRun
+  entityId  String?
+  details   String?  // JSON string
+  createdAt DateTime @default(now())
+}
+
+model Setting {
+  key       String   @id
+  value     String
+  updatedAt DateTime @updatedAt
+}

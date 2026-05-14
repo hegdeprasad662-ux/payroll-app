@@ -19,6 +19,9 @@ FROM node:20-alpine
 WORKDIR /app
 ENV NODE_ENV=production
 
+# Install OpenSSL and CA certificates for Prisma
+RUN apk add --no-cache openssl ca-certificates
+
 # Backend
 COPY --from=backend-build /app/backend ./backend
 # Frontend build

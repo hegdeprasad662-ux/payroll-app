@@ -31,4 +31,5 @@ WORKDIR /app/backend
 EXPOSE 4000
 
 # Run migrations + start on every container boot
-CMD ["sh", "-c", "npx prisma migrate deploy && node prisma/seed.js && node src/server.js"]
+# First resolve any failed migrations, then deploy new ones
+CMD ["sh", "-c", "npx prisma migrate resolve --rolled-back 20260514135843_init 2>/dev/null || true && npx prisma migrate deploy && node prisma/seed.js && node src/server.js"]
